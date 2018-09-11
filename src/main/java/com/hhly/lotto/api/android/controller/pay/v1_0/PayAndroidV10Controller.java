@@ -1,0 +1,93 @@
+package com.hhly.lotto.api.android.controller.pay.v1_0;
+
+import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
+
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.hhly.lotto.api.data.pay.v1_0.PayComponent;
+import com.hhly.lotto.base.controller.BaseController;
+import com.hhly.skeleton.base.constants.PayConstants;
+import com.hhly.skeleton.base.util.ObjectUtil;
+import com.hhly.skeleton.pay.vo.PayInputParamVO;
+import com.hhly.skeleton.pay.vo.PayParamVO;
+import com.hhly.skeleton.pay.vo.ToPayInputParamVO;
+
+@RestController
+@RequestMapping("/android/v1.0/payCenter")
+public class PayAndroidV10Controller extends BaseController {
+
+	@Resource
+	private PayComponent payCoreComponent;
+
+	/**  
+	* 方法说明: 跳转到支付页面（获取订单详情，红包列表，支付渠道等信息）
+	* @auth: xiongJinGang
+	* @param token 登录token 
+	* @param orderCode 订单号
+	* @throws Exception
+	* @time: 2017年3月21日 下午4:39:59
+	* @return: Object 
+	*/
+	@RequestMapping(value = "/toPay", method = RequestMethod.GET)
+	public Object toPay(HttpServletRequest request) throws Exception {
+		return payCoreComponent.toPay(request, PayConstants.TakenPlatformEnum.ANDROID);
+	}
+
+	/**  
+	* 方法说明: 批量支付跳转（获取订单详情，支付渠道，钱包余额等信息）
+	* @auth: xiongJinGang
+	* @param toPayInputParamVO
+	* @throws Exception
+	* @time: 2017年5月10日 下午2:17:40
+	* @return: Object 
+	*/
+	@RequestMapping(value = "/toBatchPay", method = RequestMethod.POST)
+	public Object toBatchPay(@RequestBody ToPayInputParamVO toPayInputParamVO, HttpServletRequest request) throws Exception {
+		// 如果参数中没有渠道ID，从header中获取
+		if (ObjectUtil.isBlank(toPayInputParamVO.getChannelId())) {
+			String channelId = request.getHeader("cId");
+			if (!ObjectUtil.isBlank(channelId)) {
+				toPayInputParamVO.setChannelId(channelId);
+			}
+		}
+		return payCoreComponent.toBatchPay(toPayInputParamVO, PayConstants.TakenPlatformEnum.ANDROID);
+	}
+
+	/**  
+	* 方法说明: 统一支付接口
+	* @auth: xiongJinGang
+	* @param payParam
+	* @throws Exception
+	* @time: 2017年3月21日 下午4:40:20
+	* @return: Object 
+	*/
+	@RequestMapping(value = "/pay", method = RequestMethod.POST)
+	public Object pay(@RequestBody PayInputParamVO payInputParam, HttpServletRequest request) throws Exception {
+		// 如果参数中没有渠道ID，从header中获取
+		if (ObjectUtil.isBlank(payInputParam.getChannelId())) {
+			String channelId = request.getHeader("cId");
+			if (!ObjectUtil.isBlank(channelId)) {
+				payInputParam.setChannelId(channelId);
+			}
+		}
+		return payCoreComponent.pay(payInputParam, getIp(request), PayConstants.TakenPlatformEnum.ANDROID);
+	}
+
+	/**  
+	* 方法说明: 支付结果查询，供客户端来获取支付结果
+	* @auth: xiongJinGang
+	* @param payParam 只需要token和transCode
+	* @throws Exception
+	* @time: 2017年5月23日 下午8:41:02
+	* @return: Object 
+	*/
+	@RequestMapping(value = "/payResult", method = RequestMethod.GET)
+	public Object payResult(PayParamVO payParam) throws Exception {
+		return payCoreComponent.payResult(payParam);
+	}
+
+}
